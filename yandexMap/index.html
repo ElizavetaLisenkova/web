@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title>Быстрый старт. Размещение интерактивной карты на странице.</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=556a8099-a8b5-4161-8874-330ed97186d1&lang=ru_RU"
+        type="text/javascript">
+        </script>
+    <script type="text/javascript">
+
+        var myMap;
+        var myRoute;
+        var pointFrom;
+        var pointTo;
+        var modeRoute;
+
+        ymaps.ready(init);
+        function init() {
+            myMap = new ymaps.Map("map", {
+                center: [55.76, 37.64],
+                zoom: 12,
+                controls: ['zoomControl', 'typeSelector']
+            });
+        }
+
+
+        function makeRoute() {
+            pointFrom = document.getElementById('field1').value
+            pointTo = document.getElementById('field2').value
+            modeRoute = document.querySelector('input[name="mode"]:checked').value;
+            if (pointFrom == null || pointFrom == "" && pointTo == null || pointTo == "") {
+                alert('Пожалуйста, введите адреса.')
+                return false;
+            } else {
+                myRoute = new ymaps.multiRouter.MultiRoute({
+                    referencePoints: [
+                        pointFrom,
+                        pointTo,
+                    ],
+                    params: {
+                        avoidTrafficJams: true,
+                        routingMode: modeRoute
+                    }
+                }, {
+                    boundsAutoApply: true,
+                    routeActiveStrokeWidth: 10,
+                    routeActiveStrokeStyle: 'solid',
+                    routeActiveStrokeColor: '#00FF7F'
+                });
+
+                myMap.geoObjects.add(myRoute);
+
+                myRoute.model.events.add('requestsuccess', function () {
+                    var activeRoute = myRoute.getActiveRoute();
+                    activeRoute.baloon.open();
+                    activeRoute.properties.get('distance').text;
+                    activeRoute.properties.get('duration').text;
+                })
+            }
+        }
+
+        function clearMap() {
+            myMap.geoObjects.removeAll();
+            myRoute && myMap.geoObjects.remove(myRoute);
+        }
+    </script>
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            height: 100%;
+            margin: 0px;
+            padding: 0;
+            background: #8fcad9 fixed;
+        }
+
+        form {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            padding: 20px;
+        }
+
+        .address {
+            width: 30%;
+        }
+
+        .btn {
+            width: 15%;
+            border-radius: 5px;
+        }
+
+
+
+    </style>
+</head>
+
+<body>
+    <form id="block">
+        <label for="from">Откуда:</label>
+        <input type="text" id="field1" class='address' name="from" required>
+        <label for="to">Куда:</label>
+        <input type="text" id="field2" class='address' name="to" required>
+        <input type="button" onclick="makeRoute()" value="Построить маршрут" class="btn">
+        <input type="button" onclick="clearMap()" value="Очистить карту" class="btn">
+        <input type="radio" class="radio" name="mode" id="auto" value="auto" checked>
+        <label for="auto">Автомобиль</label>
+        <input type="radio" class="radio" name="mode" id="masstransit" value="masstransit">
+        <label for="masstransit">Общественный транспорт</label>
+        <input type="radio" class="radio" name="mode" id="pedestrian" value="pedestrian">
+        <label for="pedestrian">Пешеход</label>
+    </form>
+    <div id="map" style="height: 95%"></div>
+</body>
+
+</html>
