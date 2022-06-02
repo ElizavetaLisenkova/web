@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+</head>
+<style>
+    label{
+    width: 300px;
+    display: block;
+    vertical-align: middle;
+    margin: 10px;
+    }
+    </style>
+
+<body>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io.connect("http://localhost:3000");
+        socket.on('message', function(message){
+            alert('Сервер прислал Вам сообщение: ' + message);
+        });
+
+    </script>
+    <script>
+        var recognizer = new webkitSpeechRecognition();
+        recognizer.iterimresults = true;
+        recognizer.lang = 'ru-Ru';
+
+        async function sendMessage(){
+            var text = document.getElementById('textarea').value;
+            var email = document.getElementById('email').value;
+            socket.emit('evenClient', {message: text, recipient: email});
+        }
+
+        function speechRecognition() {
+            recognizer.onresult = function(event) {
+                var result = event.results[event.resultIndex];
+                document.getElementById('textarea').value = result[0].transcript;
+                if (document.getElementById('textarea').value.includes("Отправь письмо" )) {
+                    sendMessage();
+                }
+            };
+            recognizer.start();
+        };
+        function stopRecognition(){
+            recognizer.stop();
+        }
+
+    </script>
+    <div id="wrapper"></div>
+    <p>
+        <label>Получатель</label>
+        <input type="email" id="email" placeholder="somemail@gmail.com" value="somemail@gmail.com" autofocus required />
+    </p>
+    <label >Текст
+        <textarea id="textarea" style="width: 300px; height: 150px">
+    Привет мир!
+</textarea>
+    </label>
+
+    <div id="buttons">
+        <button onclick="sendMessage()" class="btn btn-warning">Отправить</button>
+        <button onclick="speechRecognition()" class="btn btn-success">
+            Записать с микрофоном
+        </button>
+        <button onclick="stopRecognition()" class="btn btn-danger">Остановить запись</button>
+    </div>
+</body>
+
+</html>

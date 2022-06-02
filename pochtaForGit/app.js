@@ -1,0 +1,43 @@
+const path = require('path');
+const app = require('express')();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
+const nodemailer = require('nodemailer');
+
+const port = 3000
+
+const config = require('./config.json');
+
+io.on('connection', function (socket){
+console.log('Клиент подключен');
+socket.emit('message', 'Связь настроена');
+socket.on('evenClient', function(data){
+    console.log('Сообщение от клиента: ' + data.message);
+    console.log("Получатель: "+ data.recipient);
+
+
+
+    var transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true, 
+        auth: config
+    })
+    var result = transporter.sendMail({
+        from: config.mail,
+        to: data.recipient,
+        subject: "Test", 
+        text: data.message,
+        html: data.message
+    })
+});
+});
+
+pathFile = path.resolve('index.html');
+app.get('/', (req, res)=>{
+res.sendFile(pathFile);
+});
+
+http.listen(port, function (){
+console.log('Слушаю порт '+port);
+});
